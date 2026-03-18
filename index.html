@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GDEL — Gestão TI</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;background:#090e1a;font-family:'JetBrains Mono','SF Mono',monospace;color:#e2e8f0}
+a{text-decoration:none;color:inherit}
+.header{background:#0f172a;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid #1e293b;position:sticky;top:0;z-index:10}
+.logo{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0}
+.hdr-l{display:flex;align-items:center;gap:10px}
+.hdr-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{padding:6px 16px;border-radius:7px;border:1px solid #334155;background:transparent;color:#94a3b8;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn:hover{background:#1e293b;color:#e2e8f0}
+.btn:disabled{cursor:wait;opacity:.6}
+.btn-sm{padding:4px 10px;font-size:10px}
+.wrap{padding:16px 24px;max-width:1400px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:#0f172a;border-radius:12px;padding:14px 18px;border:1px solid #1e293b;display:flex;align-items:center;gap:12px;transition:border-color .2s}
+.stat:hover{border-color:#334155}
+.s-ic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.s-v{font-size:22px;font-weight:700;color:#f1f5f9;line-height:1}
+.s-l{font-size:10px;color:#64748b;margin-top:2px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:6px;border:1px solid #1e293b;background:#0f172a;color:#64748b;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.tab:hover{border-color:#334155;color:#94a3b8}
+.tab.on{border-color:#3b82f6;background:rgba(59,130,246,.12);color:#60a5fa}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.panel{background:#0f172a;border-radius:12px;border:1px solid #1e293b;overflow:hidden}
+.p-hd{padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.p-hd-t{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#f1f5f9}
+.badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px}
+.p-bd{overflow-y:auto;max-height:360px}
+.p-bd.tall{max-height:600px}
+.task{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #1e293b;transition:background .12s}
+.task:hover{background:#1e293b}
+.task.off{opacity:.4}
+.t-n{flex:1;font-size:12.5px;font-weight:500;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-t{font-size:10px;color:#475569;flex-shrink:0}
+.tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;flex-shrink:0}
+.tag-o{background:rgba(59,130,246,.12);color:#60a5fa}
+.tag-d{background:rgba(16,185,129,.12);color:#34d399}
+.tag-u{background:rgba(239,68,68,.12);color:#f87171}
+.empty{padding:28px;text-align:center;color:#475569;font-size:13px}
+.foot{margin-top:20px;padding-top:10px;border-top:1px solid #1e293b;display:flex;justify-content:space-between;font-size:9px;color:#334155;flex-wrap:wrap;gap:4px}
+.err{background:rgba(127,29,29,.25);border:1px solid #ef4444;border-radius:8px;padding:10px 16px;margin-bottom:12px;color:#fca5a5;font-size:12px}
+.bar{height:2px;background:linear-gradient(90deg,#3b82f6,#8b5cf6);position:fixed;top:0;left:0;z-index:99;animation:ld 1.5s ease-in-out infinite}
+@keyframes ld{0%{width:0}50%{width:60%}100%{width:100%;opacity:0}}
+.pulse{animation:pl 2s infinite}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.5}}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.header{padding:10px 16px}.wrap{padding:12px 16px}}
+</style>
+</head>
+<body>
+
+<div id="bar" class="bar" style="display:none"></div>
+
+<div class="header">
+  <div class="hdr-l">
+    <div class="logo">G</div>
+    <div>
+      <h1 style="font-size:15px;font-weight:700;color:#f1f5f9">GDEL — Gestão TI</h1>
+      <p style="font-size:10px;color:#475569">Painel de Operações · Auto-refresh 3min</p>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <span id="ts" style="font-size:10px;color:#475569"></span>
+    <span id="status" style="font-size:10px;color:#475569"></span>
+    <button class="btn" id="rbtn" onclick="go()">🔄 Atualizar</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="err"></div>
+  <div class="stats" id="st"></div>
+  <div class="tabs" id="tb"></div>
+  <div id="ct"></div>
+  <div class="foot">
+    <span>GDEL TI Expert BR — Dashboard v6.0</span>
+    <span>ClickUp API · Auto-refresh 3min</span>
+  </div>
+</div>
+
+<script>
+const TK="pk_284531182_1KUSZCVJYE5UXZWR5IKL5SX4KSIPNVLQ";
+const LS={
+  ch:{id:"901326423311",nm:"Chamados",ic:"🎫",ac:"#ef4444"},
+  pr:{id:"901326165328",nm:"Projetos",ic:"📐",ac:"#8b5cf6"},
+  eq:{id:"901326149414",nm:"Em Reparo",ic:"🔧",ac:"#f59e0b"}
+};
+const PRI={"1":"🔴","2":"🟠","3":"🔵","4":"⚪"};
+let D={ch:[],pr:[],eq:[]},tab="geral";
+
+function isO(t){const s=(t.status?.status||"").toLowerCase();return s!=="complete"&&s!=="closed"&&s!=="done"}
+function ago(ts){if(!ts)return"";const m=Math.floor((Date.now()-Number(ts))/6e4);if(m<60)return m+"min";const h=Math.floor(m/60);if(h<24)return h+"h";return Math.floor(h/24)+"d"}
+
+async function ft(id){
+  try{
+    const r=await fetch(`https://api.clickup.com/api/v2/list/${id}/task?include_closed=true&order_by=updated&reverse=true&subtasks=false`,{headers:{Authorization:TK}});
+    if(!r.ok)throw new Error(r.status);
+    const d=await r.json();return d.tasks||[];
+  }catch(e){console.error(e);return[];}
+}
+
+async function go(){
+  const b=document.getElementById("rbtn"),br=document.getElementById("bar"),st=document.getElementById("status");
+  b.disabled=true;b.textContent="⏳ Carregando...";br.style.display="block";
+  st.textContent="Buscando dados...";st.className="pulse";st.style.color="#60a5fa";
+  document.getElementById("err").innerHTML="";
+  try{
+    const[ch,pr,eq]=await Promise.all([ft(LS.ch.id),ft(LS.pr.id),ft(LS.eq.id)]);
+    D={ch,pr,eq};
+    document.getElementById("ts").textContent="Atualizado: "+new Date().toLocaleTimeString("pt-BR");
+    st.textContent="✅ Online";st.className="";st.style.color="#34d399";
+    draw();
+  }catch(e){
+    document.getElementById("err").innerHTML='<div class="err">❌ Erro ao carregar dados do ClickUp. Verifique sua conexão.</div>';
+    st.textContent="❌ Erro";st.className="";st.style.color="#f87171";
+  }
+  b.disabled=false;b.textContent="🔄 Atualizar";br.style.display="none";
+}
+
+function tkHTML(t){
+  const o=isO(t),p=PRI[t.priority?.id]||"🔵";
+  let tg;
+  if(!o)tg='<span class="tag tag-d">FEITO</span>';
+  else if(t.priority?.id==="1")tg='<span class="tag tag-u">URGENTE</span>';
+  else tg='<span class="tag tag-o">ABERTO</span>';
+  return`<a href="${t.url}" target="_blank" class="task ${o?"":"off"}"><span style="font-size:12px">${p}</span><span class="t-n">${t.name}</span><span class="t-t">${ago(t.date_updated)}</span>${tg}</a>`;
+}
+
+function pnHTML(nm,ic,items,ac,tall){
+  const op=items.filter(isO);
+  const bd=items.length?items.map(tkHTML).join(""):'<div class="empty">Nenhum item</div>';
+  return`<div class="panel"><div class="p-hd" style="border-bottom:2px solid ${ac}40"><span class="p-hd-t"><span style="font-size:15px">${ic}</span>${nm}</span><span class="badge" style="color:${ac};background:${ac}20">${op.length}</span></div><div class="p-bd ${tall?"tall":""}">${bd}</div></div>`;
+}
+
+function stHTML(l,v,ic,ac){
+  return`<div class="stat" style="border-left:3px solid ${ac}"><div class="s-ic" style="background:${ac}18">${ic}</div><div><div class="s-v">${v}</div><div class="s-l">${l}</div></div></div>`;
+}
+
+function draw(){
+  const ach=D.ch.filter(isO),apr=D.pr.filter(isO),aeq=D.eq.filter(isO);
+  const urg=[...D.ch,...D.pr].filter(t=>t.priority?.id==="1"&&isO(t)).length;
+  const tot=ach.length+apr.length+aeq.length;
+
+  document.getElementById("st").innerHTML=
+    stHTML("Total Ativos",tot,"📊","#3b82f6")+
+    stHTML("Chamados",ach.length,"🎫","#ef4444")+
+    stHTML("Projetos",apr.length,"📐","#8b5cf6")+
+    stHTML("Em Reparo",aeq.length,"🔧","#f59e0b")+
+    stHTML("Urgentes",urg,"🚨","#dc2626");
+
+  const tabs=[
+    {k:"geral",l:"Visão Geral"},
+    {k:"ch",l:`Chamados (${ach.length})`},
+    {k:"pr",l:`Projetos (${apr.length})`},
+    {k:"eq",l:`Reparo (${aeq.length})`}
+  ];
+  document.getElementById("tb").innerHTML=tabs.map(t=>`<button class="tab ${tab===t.k?"on":""}" onclick="setT('${t.k}')">${t.l}</button>`).join("");
+
+  const rec=[...D.ch,...D.pr,...D.eq].filter(isO).sort((a,b)=>Number(b.date_updated)-Number(a.date_updated)).slice(0,8);
+  let h="";
+  if(tab==="geral"){
+    h=`<div class="grid">${pnHTML("Chamados Abertos","🎫",ach,"#ef4444")}${pnHTML("Atualizados Recentemente","🕐",rec,"#06b6d4")}${pnHTML("Projetos Ativos","📐",apr,"#8b5cf6")}${pnHTML("Equipamentos em Reparo","🔧",aeq,"#f59e0b")}</div>`;
+  }else if(tab==="ch"){
+    h=pnHTML("Todos os Chamados","🎫",D.ch,"#ef4444",1);
+  }else if(tab==="pr"){
+    h=pnHTML("Todos os Projetos","📐",D.pr,"#8b5cf6",1);
+  }else if(tab==="eq"){
+    h=pnHTML("Equipamentos em Reparo","🔧",D.eq,"#f59e0b",1);
+  }
+  document.getElementById("ct").innerHTML=h;
+}
+
+function setT(k){tab=k;draw()}
+
+go();
+setInterval(go,3*60*1000);
+</script>
+</body>
+</html>
