@@ -44,13 +44,6 @@ a{text-decoration:none;color:inherit}
 .tag-o{background:rgba(59,130,246,.12);color:#60a5fa}
 .tag-d{background:rgba(16,185,129,.12);color:#34d399}
 .tag-u{background:rgba(239,68,68,.12);color:#f87171}
-.ev{padding:10px 16px;border-bottom:1px solid #1e293b}
-.ev.today{background:#1e293b}
-.ev-head{display:flex;align-items:center;gap:6px;margin-bottom:3px}
-.ev-type{font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;color:#fff}
-.ev-today{font-size:9px;font-weight:700;color:#fbbf24}
-.ev-title{font-size:12.5px;font-weight:600;color:#e2e8f0;margin-bottom:2px}
-.ev-time{font-size:11px;color:#64748b}
 .empty{padding:28px;text-align:center;color:#475569;font-size:13px}
 .foot{margin-top:20px;padding-top:10px;border-top:1px solid #1e293b;display:flex;justify-content:space-between;font-size:9px;color:#334155;flex-wrap:wrap;gap:4px}
 .err{background:rgba(127,29,29,.25);border:1px solid #ef4444;border-radius:8px;padding:10px 16px;margin-bottom:12px;color:#fca5a5;font-size:12px}
@@ -58,6 +51,8 @@ a{text-decoration:none;color:inherit}
 @keyframes ld{0%{width:0}50%{width:60%}100%{width:100%;opacity:0}}
 .pulse{animation:pl 2s infinite}
 @keyframes pl{0%,100%{opacity:1}50%{opacity:.5}}
+.cal-frame{width:100%;border:0;min-height:350px}
+.cal-frame-tall{min-height:580px}
 @media(max-width:800px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.header{padding:10px 16px}.wrap{padding:12px 16px}}
 </style>
 </head>
@@ -70,7 +65,7 @@ a{text-decoration:none;color:inherit}
     <div class="logo">G</div>
     <div>
       <h1 style="font-size:15px;font-weight:700;color:#f1f5f9">GDEL — Gestão TI</h1>
-      <p style="font-size:10px;color:#475569">Painel de Operações · Auto-refresh 3min</p>
+      <p style="font-size:10px;color:#475569">Painel de Operações · Tudo ao vivo</p>
     </div>
   </div>
   <div class="hdr-r">
@@ -86,27 +81,21 @@ a{text-decoration:none;color:inherit}
   <div class="tabs" id="tb"></div>
   <div id="ct"></div>
   <div class="foot">
-    <span>GDEL TI Expert BR — Dashboard v8.0</span>
-    <span>ClickUp ao vivo · Agenda snapshot</span>
+    <span>GDEL TI Expert BR — Dashboard v9.0</span>
+    <span>ClickUp + Google Calendar · Tudo ao vivo</span>
   </div>
 </div>
 
 <script>
 const TK="pk_284531182_1KUSZCVJYE5UXZWR5IKL5SX4KSIPNVLQ";
-const PROXIES=[
-  "https://corsproxy.io/?url=",
-  "https://api.allorigins.win/raw?url=",
-  ""
-];
+const PROXIES=["https://corsproxy.io/?url=",""];
 const LS={
   ch:{id:"901326423311"},
   pr:{id:"901326165328"},
   eq:{id:"901326149414"}
 };
 const PRI={"1":"🔴","2":"🟠","3":"🔵","4":"⚪"};
-
-// === AGENDA AO VIVO VIA IFRAME ===
-const GCAL_EMBED="https://calendar.google.com/calendar/embed?src=remote.gdel%40gmail.com&ctz=America%2FSao_Paulo&mode=WEEK&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0";
+const GCAL_SRC="https://calendar.google.com/calendar/embed?src=remote.gdel%40gmail.com&ctz=America%2FSao_Paulo&mode=WEEK&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0";
 
 let D={ch:[],pr:[],eq:[]},tab="geral";
 
@@ -140,12 +129,11 @@ async function go(){
     if(total>0){
       st.textContent="✅ Online";st.className="";st.style.color="#34d399";
     }else{
-      st.textContent="⚠️ Sem dados";st.className="";st.style.color="#fbbf24";
-      document.getElementById("err").innerHTML='<div class="err">⚠️ Não foi possível carregar dados do ClickUp. Se estiver no GitHub Pages, abra este arquivo localmente (duplo-clique no .html) para funcionar.</div>';
+      st.textContent="⚠️ Sem dados ClickUp";st.className="";st.style.color="#fbbf24";
     }
     draw();
   }catch(e){
-    document.getElementById("err").innerHTML='<div class="err">❌ Erro ao carregar. Verifique sua conexão.</div>';
+    document.getElementById("err").innerHTML='<div class="err">❌ Erro ao carregar ClickUp.</div>';
     st.textContent="❌ Erro";st.className="";st.style.color="#f87171";
     draw();
   }
@@ -161,20 +149,15 @@ function tkHTML(t){
   return`<a href="${t.url}" target="_blank" class="task ${o?"":"off"}"><span style="font-size:12px">${p}</span><span class="t-n">${t.name}</span><span class="t-t">${ago(t.date_updated)}</span>${tg}</a>`;
 }
 
-function evHTML(e){
-  const TC={VISITA:"#10b981",REMOTO:"#6366f1","REUNIÃO":"#f59e0b"};
-  return`<div class="ev ${e.today?'today':''}"><div class="ev-head"><span class="ev-type" style="background:${TC[e.type]||"#8b5cf6"}">${e.type}</span>${e.today?'<span class="ev-today">HOJE</span>':''}</div><div class="ev-title">${e.title}</div><div class="ev-time">${e.day} · ${e.time}</div></div>`;
-}
-
 function pnHTML(nm,ic,items,ac,tall){
   const op=items.filter(isO);
   const bd=items.length?items.map(tkHTML).join(""):'<div class="empty">Nenhum item</div>';
   return`<div class="panel"><div class="p-hd" style="border-bottom:2px solid ${ac}40"><span class="p-hd-t"><span style="font-size:15px">${ic}</span>${nm}</span><span class="badge" style="color:${ac};background:${ac}20">${op.length}</span></div><div class="p-bd ${tall?"tall":""}">${bd}</div></div>`;
 }
 
-function agHTML(tall){
-  const h=tall?550:360;
-  return`<div class="panel"><div class="p-hd" style="border-bottom:2px solid #06b6d440"><span class="p-hd-t"><span style="font-size:15px">📅</span>Agenda — Ao Vivo</span><span class="badge" style="color:#06b6d4;background:#06b6d420">LIVE</span></div><div style="height:${h}px"><iframe src="${GCAL_EMBED}" style="border:0;width:100%;height:100%;filter:invert(0.88) hue-rotate(180deg)" frameborder="0" scrolling="no"></iframe></div></div>`;
+function calHTML(tall){
+  const cls=tall?"cal-frame cal-frame-tall":"cal-frame";
+  return`<div class="panel"><div class="p-hd" style="border-bottom:2px solid #06b6d440"><span class="p-hd-t"><span style="font-size:15px">📅</span>Agenda — Ao Vivo</span><span class="badge" style="color:#10b981;background:#10b98120">● LIVE</span></div><iframe src="${GCAL_SRC}" class="${cls}" frameborder="0" scrolling="no" style="filter:invert(0.88) hue-rotate(180deg);border-radius:0 0 12px 12px"></iframe></div>`;
 }
 
 function stHTML(l,v,ic,ac){
@@ -199,17 +182,22 @@ function draw(){
     {k:"ch",l:`Chamados (${ach.length})`},
     {k:"pr",l:`Projetos (${apr.length})`},
     {k:"eq",l:`Reparo (${aeq.length})`},
-    {k:"ag",l:"Agenda 📅"}
+    {k:"ag",l:"📅 Agenda"}
   ];
   document.getElementById("tb").innerHTML=tabs.map(t=>`<button class="tab ${tab===t.k?"on":""}" onclick="setT('${t.k}')">${t.l}</button>`).join("");
 
   let h="";
   if(tab==="geral"){
-    h=`<div class="grid">${pnHTML("Chamados Abertos","🎫",D.ch.filter(isO),"#ef4444")}${agHTML()}${pnHTML("Projetos Ativos","📐",D.pr.filter(isO),"#8b5cf6")}${pnHTML("Equipamentos em Reparo","🔧",D.eq.filter(isO),"#f59e0b")}</div>`;
-  }else if(tab==="ch"){h=pnHTML("Todos os Chamados","🎫",D.ch,"#ef4444",1);}
-  else if(tab==="pr"){h=pnHTML("Todos os Projetos","📐",D.pr,"#8b5cf6",1);}
-  else if(tab==="eq"){h=pnHTML("Equipamentos em Reparo","🔧",D.eq,"#f59e0b",1);}
-  else if(tab==="ag"){h=agHTML(1);}
+    h=`<div class="grid">${pnHTML("Chamados Abertos","🎫",ach,"#ef4444")}${calHTML()}${pnHTML("Projetos Ativos","📐",apr,"#8b5cf6")}${pnHTML("Equipamentos em Reparo","🔧",aeq,"#f59e0b")}</div>`;
+  }else if(tab==="ch"){
+    h=pnHTML("Todos os Chamados","🎫",D.ch,"#ef4444",1);
+  }else if(tab==="pr"){
+    h=pnHTML("Todos os Projetos","📐",D.pr,"#8b5cf6",1);
+  }else if(tab==="eq"){
+    h=pnHTML("Equipamentos em Reparo","🔧",D.eq,"#f59e0b",1);
+  }else if(tab==="ag"){
+    h=calHTML(1);
+  }
   document.getElementById("ct").innerHTML=h;
 }
 
